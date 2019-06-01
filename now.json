@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "name": "nodejs-ts",
+    "builds": [{ "src": "*.ts", "use": "@now/node" }],
+    "routes": [
+        { "src": "/register", "use": "./server/src/routes/register.ts" },
+        { "src": "/reset/.*", "use": "./server/src/routes/reset.ts" }
+    ]
+}

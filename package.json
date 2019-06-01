@@ -1,0 +1,38 @@
+{
+  "devDependencies": {
+    "@types/lodash": "^4.14.133",
+    "@types/koa": "^2.0.47",
+    "@types/koa-bodyparser": "^4.2.1",
+    "@types/koa-logger": "^3.1.1",
+    "@types/node": "^10.12.18",
+    "@types/redis": "^2.8.13",
+    "prettier": "^1.17.1",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.1"
+  },
+  "name": "scheduled-deploy",
+  "version": "1.0.0",
+  "description": "Schedule now deploys!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "now",
+    "zeit",
+    "schedule",
+    "deploy"
+  ],
+  "author": "Ishaan Malhi",
+  "license": "ISC",
+  "dependencies": {
+    "@zeit/integration-utils": "^0.6.1",
+    "lodash.pick": "^4.4.0",
+    "node-redis": "^0.1.7",
+    "redis": "^2.8.0",
+    "winston": "^3.2.1",
+    "koa": "^2.6.2",
+    "koa-bodyparser": "^4.2.1",
+    "koa-logger": "^3.2.0"
+  }
+}
