@@ -1,11 +1,6 @@
 import { createClient } from 'redis'
 import { logger } from './logging'
-
-const {
-    REDIS_HOST_URL,
-    REDIS_HOST_DB = 1, // most hosted databases keep administrative info in DB 0, select db 1 to be safe
-    REDIS_HOST_PASSWORD,
-} = process.env
+import { REDIS_HOST_DB, REDIS_HOST_PASSWORD, REDIS_HOST_URL } from './commons'
 
 if (!REDIS_HOST_URL) {
     throw new Error('Redis Host URL Needed')

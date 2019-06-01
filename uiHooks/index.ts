@@ -10,7 +10,7 @@ const Info = require('./info')
 import { addEnvConfig } from './addBaseConfig'
 
 module.exports = withUiHook(async ({ payload, zeitClient }) => {
-    const { clientState, action, projectId } = payload
+    const { clientState, action, projectId, teamId } = payload
 
     if (!projectId) {
         return htm`
@@ -31,9 +31,8 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
 
     const metadata: deploymentConfig = await zeitClient.getMetadata()
-
     if (action === 'submit') {
-        const { deploymentStore } = clientState
+        const { ...deploymentStore } = clientState
         metadata.deploymentStores.push(deploymentStore)
         // Set metadata
         await zeitClient.setMetadata(metadata)
@@ -45,11 +44,10 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
     if (action === 'reset') {
         Object.assign(deploymentStore, {
-            project: {
-                name: '',
-                gitUrl: '',
-                timeToDeploy: '',
-            },
+            project_name: '',
+            gitUrl: '',
+            timeToDeploy: '',
+            teamId: '',
         })
     }
 
@@ -58,12 +56,12 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 		<Page>
         <H1>Enter scheduled deployment</H1>
         <Container>
-            ${Object.keys(deploymentStore.project).map(k => {
+            ${Object.keys(deploymentStore).map(k => {
                 if (k !== 'name') {
                     htm`<Input label="projectName" name="project" value=${projectId} />`
                 } else {
                     htm`<Input label="${k}" name="${k}" value=${
-                        deploymentStore.project[k]
+                        deploymentStore[k]
                     } />`
                 }
             })}
@@ -74,14 +72,10 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
                 <H1>Scheduled Deployments</H1>
                 ${Object.keys(metadata).forEach(
                     (k: deploymentStore, indexNumber) => {
-                        Object.keys(k.project).forEach(deploymentDetailKey => {
+                        Object.keys(k).forEach(deploymentDetailKey => {
                             htm`
                             <P>${deploymentDetailKey}<P/>
-                            <P>${
-                                metadata[indexNumber].project[
-                                    deploymentDetailKey
-                                ]
-                            }</P>
+                            <P>${metadata[indexNumber][deploymentDetailKey]}</P>
                             `
                         })
                     }

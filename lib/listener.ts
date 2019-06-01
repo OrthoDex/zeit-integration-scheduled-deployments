@@ -8,15 +8,17 @@ export const listener = redisClient.on('message', (channel, message) => {
     // more here: https://redis.io/topics/transactions
 
     // TODO: dunno if this works at scale, use https://github.com/mike-marcacci/node-redlock
-    const projectName = `${message.split(':').slice(-1)[0]}`
-    const key = `${projectName}:watch`
+    const keyList = `${message.split(':').slice(-1)[0]}`
+    const projectId = keyList.split('.')[2]
+    const teamId = keyList.split('.')[1]
+    const key = `${projectId}:${teamId}:watch`
     redisClient.watch(key, function(err) {
         if (err) {
             logger.error('Watch error! Exiting pub sub', { err })
             return
         }
 
-        createDeployment(projectName, (err, result) => {
+        createDeployment(teamId, projectId, (err, result) => {
             if (err) {
                 logger.error('Error creating deployment!', { err })
                 return redisClient.unwatch(() => {
