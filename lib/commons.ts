@@ -7,6 +7,12 @@ if (!SCHEDULE_ENDPOINT) {
     process.exit(0)
 }
 
+export type redisConfig = {
+    redisHostUrl: string
+    redisHostPassword: string
+    redisHostDb: string
+}
+
 export const redisConfig = {
     redisHostUrl: '',
     redisHostPassword: '',

@@ -7,10 +7,11 @@ import {
 } from '../lib/commons'
 
 const Info = require('./info')
-const addRedisConfig = require('./addRedisConfig')
+import { addEnvConfig } from './addBaseConfig'
 
 module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const { clientState, action, projectId } = payload
+
     if (!projectId) {
         return htm`
 			<Page>
@@ -20,7 +21,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
 
     if (!redisConfig) {
-        return addRedisConfig({ redisConfig })
+        return addEnvConfig({ redisConfig, payload, zeitClient })
     }
     if (action === 'reset-all') {
         await zeitClient.setMetadata({})

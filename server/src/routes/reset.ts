@@ -5,8 +5,6 @@ import { createApp } from '../common'
 import { promisify } from 'util'
 import { redisClient } from '../../../lib/redisClient'
 import { logger } from '../../../lib/logging'
-import { deploymentStore } from '../../../lib/commons'
-
 const deleteAsync = promisify(redisClient.del)
 
 async function main(ctx: Context, next: Function) {
