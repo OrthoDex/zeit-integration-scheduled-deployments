@@ -52,6 +52,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         })
     }
 
+    // TODO: Use datepicker for scheduling
     return htm`
 		<Page>
         <H1>Enter scheduled deployment</H1>
