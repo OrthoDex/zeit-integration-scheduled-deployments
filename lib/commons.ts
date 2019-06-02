@@ -1,7 +1,7 @@
 export const {
     REDIS_HOST_URL,
     REDIS_HOST_DB = 1, // most hosted databases keep administrative info in DB 0, select db 1 to be safe
-    REDIS_HOST_PASSWORD,
+    REDIS_HOST_PASSWORD = '',
     SCHEDULE_ENDPOINT,
     CLIENT_ID,
     CLIENT_SECRET,
@@ -17,13 +17,7 @@ if (!SCHEDULE_ENDPOINT) {
     process.exit(0)
 }
 
-export type redisConfig = {
-    redisHostUrl: string
-    redisHostPassword: string
-    redisHostDb: string
-}
-
-export const redisConfig = {
+export const redisConfig: any = {
     redisHostUrl: '',
     redisHostPassword: '',
     redisHostDb: '',

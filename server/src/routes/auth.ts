@@ -11,10 +11,13 @@ import {
 } from '../../../lib/commons'
 import { redisClient } from '../../../lib/redisClient'
 import { promisify } from 'util'
+import { logger } from '../../../lib/logging'
+import * as fetch from 'node-fetch'
 
 const setAsync = promisify(redisClient.set).bind(redisClient)
 
 async function main(ctx: Context, cb: Function) {
+    logger.info('Body', { ctx })
     const { configurationId, teamId, code, next } = ctx.query
 
     const tokenRes = await fetch('https://api.zeit.co/v2/oauth/access_token', {

@@ -8,7 +8,7 @@ import { logger } from '../../../lib/logging'
 const deleteAsync = promisify(redisClient.del).bind(redisClient)
 
 async function main(ctx: Context, next: Function) {
-    logger.info({ ctx })
+    logger.info('body', { ctx })
 
     const { deploymentStore } = ctx.body
     try {

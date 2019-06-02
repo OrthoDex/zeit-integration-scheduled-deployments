@@ -1,9 +1,24 @@
 {
   "version": 2,
-  "name": "nodejs-ts",
-  "builds": [{ "src": "*.ts", "use": "@now/node" }],
+  "name": "scheduled-deployments",
+  "builds": [
+    { "src": "server/src/common.ts", "use": "@now/node" },
+    { "src": "uiHooks/index.ts", "use": "@now/node" },
+    { "src": "lib/.*", "use": "@now/node" }
+  ],
   "routes": [
-    { "src": "/register", "use": "./server/src/routes/register.ts" },
-    { "src": "/reset/.*", "use": "./server/src/routes/reset.ts" }
-  ]
+    { "src": "/", "dest": "uiHooks/index.ts" },
+    { "src": "/(.*)", "dest": "server/src/common.ts" },
+    { "src": "/register", "dest": "server/src/routes/register.ts" },
+    { "src": "/reset", "dest": "server/src/routes/reset.ts" },
+    { "src": "/auth", "dest": "server/src/routes/auth.ts" }
+  ],
+  "env": {
+    "REDIS_HOST_URL": "localhost",
+    "SCHEDULE_ENDPOINT": "localhost:5005",
+    "CLIENT_ID": "",
+    "CLIENT_SECRET": "",
+    "SELF_URL": "localhost:5005",
+    "ENCRYPTION_KEY": "123"
+  }
 }

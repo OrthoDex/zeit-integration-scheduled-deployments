@@ -1,13 +1,12 @@
-import { withUiHook, htm } from '@zeit/integration-utils'
-import {
+const { withUiHook } = require('@zeit/integration-utils')
+const {
     deploymentConfig,
     deploymentStore,
     SCHEDULE_ENDPOINT,
     redisConfig,
-} from '../lib/commons'
+} = require('../lib/commons')
 
-const Info = require('./info')
-import { addEnvConfig } from './addBaseConfig'
+const { addEnvConfig } = require('./addBaseConfig')
 
 module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const { clientState, action, projectId, teamId } = payload
@@ -15,13 +14,18 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     if (!projectId) {
         return htm`
 			<Page>
-				<${Info}>Select a project to show scheduled deployment information: <ProjectSwitcher/><//>
+            <Box textAlign="right">
+		    	<ProjectSwitcher />
+            </Box>
+            <Box padding="10px" textAlign="center">
+                <P>Select a project to show scheduled deployment information:</P>
+            </Box>
 			</Page>
 		`
     }
 
     if (!redisConfig) {
-        return addEnvConfig({ redisConfig, payload, zeitClient })
+        return addEnvConfig(redisConfig, payload, zeitClient)
     }
     if (action === 'reset-all') {
         await zeitClient.setMetadata({})
@@ -30,7 +34,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         })
     }
 
-    const metadata: deploymentConfig = await zeitClient.getMetadata()
+    const metadata = await zeitClient.getMetadata()
     if (action === 'submit') {
         const { ...deploymentStore } = clientState
         metadata.deploymentStores.push(deploymentStore)
@@ -70,16 +74,14 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         <Container>
             <Box display="flex" justifyContent="space-between">
                 <H1>Scheduled Deployments</H1>
-                ${Object.keys(metadata).forEach(
-                    (k: deploymentStore, indexNumber) => {
-                        Object.keys(k).forEach(deploymentDetailKey => {
-                            htm`
+                ${Object.keys(metadata).forEach((k, indexNumber) => {
+                    Object.keys(k).forEach(deploymentDetailKey => {
+                        htm`
                             <P>${deploymentDetailKey}<P/>
                             <P>${metadata[indexNumber][deploymentDetailKey]}</P>
                             `
-                        })
-                    }
-                )}
+                    })
+                })}
             </Box>
         </Container>
         <Container>

@@ -1,7 +1,7 @@
 import { htm } from '@zeit/integration-utils'
 import * as pick from 'lodash.pick'
 
-export const addEnvConfig = async ({ config, payload, zeitClient }) => {
+export const addEnvConfig = async (config, payload, zeitClient) => {
     const {
         action,
         clientState,

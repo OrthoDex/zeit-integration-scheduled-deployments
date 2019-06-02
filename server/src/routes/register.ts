@@ -17,7 +17,7 @@ const getSecondsUntil = (untilDate: Date) => {
 }
 
 async function main(ctx: Context, next: Function) {
-    logger.info({ ctx })
+    logger.info('body', { ctx })
 
     const { deploymentStore } = ctx.body
     try {
