@@ -1,14 +1,14 @@
-const { withUiHook } = require('@zeit/integration-utils')
-const {
+import { htm, withUiHook } from '@zeit/integration-utils'
+import {
     deploymentConfig,
     deploymentStore,
     SCHEDULE_ENDPOINT,
     redisConfig,
-} = require('../lib/commons')
+} from '../lib/commons'
 
-const { addEnvConfig } = require('./addBaseConfig')
+import { addEnvConfig } from './addBaseConfig'
 
-module.exports = withUiHook(async ({ payload, zeitClient }) => {
+export async function handler({ payload, zeitClient }) {
     const { clientState, action, projectId, teamId } = payload
 
     if (!projectId) {
@@ -34,7 +34,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         })
     }
 
-    const metadata = await zeitClient.getMetadata()
+    const metadata: deploymentConfig = await zeitClient.getMetadata()
     if (action === 'submit') {
         const { ...deploymentStore } = clientState
         metadata.deploymentStores.push(deploymentStore)
@@ -92,4 +92,4 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         <AutoRefresh timeout=${3000} />
 		</Page>
 	`
-})
+}

@@ -2,8 +2,7 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "target": "es2017",
-    "outDir": "dist",
-    "lib": ["esnext", "dom"]
+    "outDir": "dist"
   },
-  "include": ["./"]
+  "exclude": ["node_modules"]
 }
