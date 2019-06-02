@@ -2,23 +2,31 @@
   "version": 2,
   "name": "scheduled-deployments",
   "builds": [
-    { "src": "server/src/common.ts", "use": "@now/node" },
-    { "src": "uiHooks/index.ts", "use": "@now/node" },
-    { "src": "lib/.*", "use": "@now/node" }
+    { "src": "server/src/routes/auth.ts", "use": "@now/node" },
+    { "src": "server/src/routes/default.ts", "use": "@now/node" },
+    { "src": "server/src/routes/reset.ts", "use": "@now/node" },
+    { "src": "server/src/routes/register.ts", "use": "@now/node" },
+    { "src": "server/src/routes/notify.ts", "use": "@now/node" },
+    { "src": "uiHooks/index.ts", "use": "@now/node" }
   ],
   "routes": [
     { "src": "/", "dest": "uiHooks/index.ts" },
-    { "src": "/(.*)", "dest": "server/src/common.ts" },
-    { "src": "/register", "dest": "server/src/routes/register.ts" },
-    { "src": "/reset", "dest": "server/src/routes/reset.ts" },
-    { "src": "/auth", "dest": "server/src/routes/auth.ts" }
+    { "src": "/api/register", "dest": "server/src/routes/register.ts" },
+    {
+      "src": "/api/reset/:projectId/:userId",
+      "dest": "server/src/routes/reset.ts"
+    },
+    { "src": "/api/auth", "dest": "server/src/routes/auth.ts" },
+    { "src": "/api/notify", "dest": "server/src/routes/notify.ts" },
+    { "src": "/api/(.*)", "dest": "server/src/routes/default.ts" }
   ],
   "env": {
-    "REDIS_HOST_URL": "localhost",
-    "SCHEDULE_ENDPOINT": "localhost:5005",
-    "CLIENT_ID": "",
-    "CLIENT_SECRET": "",
-    "SELF_URL": "localhost:5005",
-    "ENCRYPTION_KEY": "123"
+    "REDIS_HOST_URL": "@redis_host",
+    "SCHEDULE_ENDPOINT": "@schedule_endpoint",
+    "CLIENT_ID": "@client_id",
+    "CLIENT_SECRET": "@client_secret",
+    "SELF_URL": "@self_url",
+    "ENCRYPTION_KEY": "@encryption_key",
+    "DEBUG": "@debug"
   }
 }

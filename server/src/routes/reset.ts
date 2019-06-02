@@ -8,11 +8,11 @@ import { logger } from '../../../lib/logging'
 const deleteAsync = promisify(redisClient.del).bind(redisClient)
 
 async function main(ctx: Context, next: Function) {
-    logger.info('body', { ctx })
+    logger.info('ctx', { ctx })
 
-    const { deploymentStore } = ctx.body
+    const { projectId, userId } = ctx.body
     try {
-        const result = await deleteAsync(deploymentStore.project.name)
+        const result = await deleteAsync(`.${userId}.${projectId}.`)
         if (result !== 'OK') {
             throw new Error('Redis setex not ok error')
         }

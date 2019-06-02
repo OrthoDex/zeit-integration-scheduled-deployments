@@ -1,57 +1,142 @@
 import { htm, withUiHook, HandlerOptions } from '@zeit/integration-utils'
 import {
     deploymentConfig,
-    deploymentStore,
     SCHEDULE_ENDPOINT,
     redisConfig,
+    deploymentDetails,
 } from '../lib/commons'
 
 import { addEnvConfig } from './addBaseConfig'
+import * as pick from 'lodash.pick'
+import * as isEmpty from 'lodash.isempty'
+const fetch = require('@zeit/fetch')(require('node-fetch'))
+import { logger } from '../lib/logging'
 
-export default withUiHook(
-    async (handlerOptions: HandlerOptions): Promise<string> => {
-        const { payload, zeitClient } = handlerOptions
-        const { clientState, action, projectId, teamId } = payload
+const deploymentDetailsCache: deploymentDetails = {
+    projectId: '',
+    rawFileUrl: '',
+    timeToDeploy: '',
+    teamId: '',
+    userId: '',
+}
 
-        if (!projectId) {
-            return htm`
+const showScheduledDeployments = ({ metadata, children }) => htm`
+    ${
+        isEmpty(metadata) || isEmpty(metadata.deploymentStores)
+            ? htm`<P> There are no scheduled deployments</P>`
+            : metadata.deploymentStores.forEach(
+                  (deploymentDetail: deploymentDetails) => {
+                      Object.keys(deploymentDetails).map(
+                          key => htm`
+                        <P>${key}</P>
+                        <P>${deploymentDetail[key]}</P>
+                      `
+                      )
+                  }
+              )
+    }`
+
+const createDeploymentForm = ({ children }) => htm`
+    <Box marginTop="10px">
+    ${Object.keys(deploymentDetailsCache).map(
+        k => htm`${
+            !['teamId', 'userId'].includes(k)
+                ? htm`<Input label="${k}" name="${k}" value="${
+                      deploymentDetailsCache[k]
+                  }" />`
+                : htm`<P></P>`
+        }
+		
+			`
+    )}
+    </Box>
+`
+
+const projectSwitcher = ({ children, projectId }) => htm`
 			<Page>
             <Box textAlign="right">
 		    	<ProjectSwitcher />
             </Box>
+            ${
+                isEmpty(projectId)
+                    ? htm`
             <Box padding="10px" textAlign="center">
                 <P>Select a project to show scheduled deployment information:</P>
             </Box>
-			</Page>
+            `
+                    : htm`<P></P>`
+            }
+            </Page>
 		`
+
+export default withUiHook(
+    async (handlerOptions: HandlerOptions): Promise<string> => {
+        const { payload, zeitClient } = handlerOptions
+        const { clientState, action, projectId, teamId, user } = payload
+        const uid = user.id
+        let status = 'pending'
+
+        if (!projectId) {
+            return htm`<${projectSwitcher} //>`
         }
 
-        if (!redisConfig) {
-            return addEnvConfig(redisConfig, payload, zeitClient)
-        }
+        deploymentDetailsCache.projectId = projectId
+        deploymentDetailsCache.teamId = teamId || ''
+
+        // TODO: Add ability to define user's own redis cluster
+        // if (!redisConfig) {
+        //     return addEnvConfig(redisConfig, payload, zeitClient)
+        // }
+
         if (action === 'reset-all') {
             await zeitClient.setMetadata({})
-            await fetch(`${SCHEDULE_ENDPOINT}/reset/${payload.projectId}`, {
-                method: 'DELETE',
-            })
+            await fetch(
+                `${SCHEDULE_ENDPOINT}/api/reset/${payload.projectId}/${uid}`,
+                {
+                    method: 'DELETE',
+                }
+            )
         }
 
-        const metadata: deploymentConfig = await zeitClient.getMetadata()
+        let metadata: deploymentConfig = await zeitClient.getMetadata()
         if (action === 'submit') {
-            const { ...deploymentStore } = clientState
-            metadata.deploymentStores.push(deploymentStore)
+            const deploymentDetails = pick(
+                clientState,
+                Object.keys(deploymentDetailsCache)
+            )
+            if (isEmpty(metadata)) {
+                metadata = {
+                    deploymentStores: [],
+                }
+            }
+
+            deploymentDetails.userId = uid
+
+            logger.debug('deployment', { deploymentDetails })
+
             // Set metadata
             await zeitClient.setMetadata(metadata)
-            await fetch(SCHEDULE_ENDPOINT, {
+            const res = await fetch(`${SCHEDULE_ENDPOINT}/api/register`, {
                 method: 'POST',
-                body: JSON.stringify(deploymentStore),
+                body: JSON.stringify({
+                    deploymentDetails: deploymentDetails,
+                }),
             })
+
+            logger.debug('status', { res })
+
+            if (res.status === 204) {
+                metadata.deploymentStores.push(deploymentDetails)
+                status = 'success'
+            } else {
+                status = 'error'
+            }
         }
 
         if (action === 'reset') {
-            Object.assign(deploymentStore, {
-                project_name: '',
-                gitUrl: '',
+            Object.assign(deploymentDetailsCache, {
+                projectId: '',
+                rawFileUrl: '',
                 timeToDeploy: '',
                 teamId: '',
             })
@@ -59,40 +144,35 @@ export default withUiHook(
 
         // TODO: Use datepicker for scheduling
         return htm`
-		<Page>
-        <H1>Enter scheduled deployment</H1>
-        <Container>
-            ${Object.keys(deploymentStore).map(k => {
-                if (k !== 'name') {
-                    htm`<Input label="projectName" name="project" value=${projectId} />`
-                } else {
-                    htm`<Input label="${k}" name="${k}" value=${
-                        deploymentStore[k]
-                    } />`
-                }
-            })}
-        </Container>
-        
-        <Container>
-            <Box display="flex" justifyContent="space-between">
-                <H1>Scheduled Deployments</H1>
-                ${Object.keys(metadata).forEach((k, indexNumber) => {
-                    Object.keys(k).forEach(deploymentDetailKey => {
-                        htm`
-                            <P>${deploymentDetailKey}<P/>
-                            <P>${metadata[indexNumber][deploymentDetailKey]}</P>
-                            `
-                    })
-                })}
-            </Box>
-        </Container>
-        <Container>
-            <Button action="submit">Submit</Button>
-            <Button action="reset">Reset</Button>
-            <Button action="reset-all">Reset All</Button>
-        </Container>
-        <AutoRefresh timeout=${3000} />
-		</Page>
-	`
+            <Page>
+            <Container>
+                <Notice type="${
+                    status === 'pending' ? 'message' : status
+                }">Deployment Status: ${status}</Notice>
+            </Container>
+            <Container>
+                <H1>Switch projects</H1>
+                ${htm`<${projectSwitcher} projectId=${projectId} //>`}
+            </Container>
+            <Container>
+                <Box>
+                    <H1>Enter scheduled deployment</H1>
+                    ${htm`<${createDeploymentForm} //>`}
+                </Box>
+            </Container>
+            <Container>
+                <Box>
+                    <H1>Scheduled Deployments</H1>
+                    ${htm`<${showScheduledDeployments} metadata=${metadata}//>`}
+                </Box>
+            </Container>
+            <Container>
+                <Button action="submit">Submit</Button>
+                <Button action="reset">Reset</Button>
+                <Button action="reset-all">Reset All</Button>
+            </Container>
+            <AutoRefresh timeout=${3000} />
+            </Page>
+    	`
     }
 )

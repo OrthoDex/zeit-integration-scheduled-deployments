@@ -1,6 +1,28 @@
-import { redisClient } from './redisClient'
-import { logger } from './logging'
-import { createDeployment } from './zeitApiClient'
+import { redisClient } from '../lib/redisClient'
+import { logger } from '../lib/logging'
+import { REDIS_HOST_DB, SCHEDULE_ENDPOINT } from '../lib/commons'
+
+redisClient.on('error', err => {
+    logger.error('Failed to connect to redis. Exiting process', { err })
+    process.exit(0)
+})
+
+redisClient.on('ready', () => {
+    redisClient.config('SET', 'notify-keyspace-events', 'KExe') // https://redis.io/topics/notifications
+    redisClient.psubscribe(`__key${REDIS_HOST_DB}__:*`) // listen to keyspace events from specific db
+})
+
+const notifyKeySpace = (userId: string, projectId: string, cb) => {
+    fetch(`${SCHEDULE_ENDPOINT}/api/notify`, {
+        method: 'POST',
+        body: JSON.stringify({
+            projectId,
+            userId,
+        }),
+    })
+        .then(res => cb(null, res))
+        .then(err => cb(err))
+}
 
 export const listener = redisClient.on('message', (channel, message) => {
     logger.info('Message Received', { channel, message })
@@ -10,15 +32,15 @@ export const listener = redisClient.on('message', (channel, message) => {
     // TODO: dunno if this works at scale, use https://github.com/mike-marcacci/node-redlock
     const keyList = `${message.split(':').slice(-1)[0]}`
     const projectId = keyList.split('.')[2]
-    const teamId = keyList.split('.')[1]
-    const key = `${projectId}:${teamId}:watch`
+    const userId = keyList.split('.')[1]
+    const key = `${projectId}:${userId}:watch`
     redisClient.watch(key, function(err) {
         if (err) {
             logger.error('Watch error! Exiting pub sub', { err })
             return
         }
 
-        createDeployment(teamId, projectId, (err, result) => {
+        notifyKeySpace(userId, projectId, (err, result) => {
             if (err) {
                 logger.error('Error creating deployment!', { err })
                 return redisClient.unwatch(() => {

@@ -27,10 +27,12 @@
   "author": "Ishaan Malhi",
   "license": "ISC",
   "dependencies": {
+    "@zeit/fetch": "^5.1.0",
     "@zeit/integration-utils": "^0.6.1",
     "koa": "^2.6.2",
     "koa-bodyparser": "^4.2.1",
     "koa-logger": "^3.2.0",
+    "lodash.isempty": "^4.4.0",
     "lodash.pick": "^4.4.0",
     "node-fetch": "^2.6.0",
     "node-redis": "^0.1.7",

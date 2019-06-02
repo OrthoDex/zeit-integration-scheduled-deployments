@@ -24,21 +24,19 @@ export const redisConfig: any = {
 }
 
 export type deploymentDetails = {
-    project_name: string
-    gitUrl: string
+    projectId: string
+    rawFileUrl: string
     timeToDeploy: string
     teamId: string
+    userId: string
 }
 
 export const deploymentDetails: deploymentDetails = {
-    project_name: '',
-    gitUrl: '',
+    projectId: '',
+    rawFileUrl: '',
     timeToDeploy: '', // in UTC timestamp
     teamId: '',
-}
-
-export const deploymentStore: deploymentDetails = {
-    ...deploymentDetails,
+    userId: '',
 }
 
 export type deploymentConfig = {
@@ -46,5 +44,5 @@ export type deploymentConfig = {
 }
 
 export const deploymentConfig = {
-    deploymentStores: [deploymentStore],
+    deploymentStores: [deploymentDetails],
 }
