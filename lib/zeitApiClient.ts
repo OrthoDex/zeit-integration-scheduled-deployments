@@ -25,38 +25,58 @@ export const createApiToken = async (uid: string) => {
     }
 }
 
-export const createDeployment = (
+export const createDeployment = async (
     userId: string,
-    projectName: string,
+    projectId: string,
     payload: deploymentDetails
 ) => {
-    return createApiToken(userId).then(token => {
-        if (token) {
-            return fetch(payload.rawFileUrl)
-                .then(res => res.text())
-                .then((rawFileContent: string) => {
-                    logger.debug('fileContent', { rawFileContent })
-                    return fetch('https://api.zeit.co/v9/now/deployments', {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            name: projectName,
-                            version: 2,
-                            files: [
-                                {
-                                    file: payload.rawFileUrl
-                                        .split('/')
-                                        .slice(-1)[0],
-                                    data: rawFileContent,
-                                },
-                            ], // TODO: fill this or make dynamic
-                        }),
-                    }).then(res => res.json())
-                })
-        } else {
-            throw new Error('no valid client found')
+    try {
+        const token = await createApiToken(userId)
+        if (!token) {
+            throw new Error(`No token found for user ${userId}`)
         }
-    })
+        const projectName: string = await fetch(
+            `https://api.zeit.co/v1/projects/${projectId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        )
+            .then(res => res.json())
+            .then(projectDetails => projectDetails.name)
+
+        const rawFileContent = await fetch(payload.rawFileUrl).then(res =>
+            res.text()
+        )
+
+        const fileName = payload.rawFileUrl.split('/').slice(-1)[0]
+
+        logger.debug('fileContent', { rawFileContent, fileName })
+        const deployResponse = await fetch(
+            'https://api.zeit.co/v9/now/deployments',
+            {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: projectName,
+                    version: 2,
+                    files: [
+                        {
+                            file: fileName,
+                            data: rawFileContent,
+                        },
+                    ],
+                }),
+            }
+        ).then(res => res.json())
+        logger.debug('deployment response', { deployResponse })
+        // todo check if ready and alias to latest
+        return deployResponse
+    } catch (error) {
+        logger.error('error in creating deployment', { error })
+        throw error
+    }
 }
