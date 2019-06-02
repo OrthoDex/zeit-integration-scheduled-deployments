@@ -1,4 +1,4 @@
-import { htm, withUiHook } from '@zeit/integration-utils'
+import { htm, withUiHook, HandlerOptions } from '@zeit/integration-utils'
 import {
     deploymentConfig,
     deploymentStore,
@@ -8,11 +8,13 @@ import {
 
 import { addEnvConfig } from './addBaseConfig'
 
-export async function handler({ payload, zeitClient }) {
-    const { clientState, action, projectId, teamId } = payload
+export default withUiHook(
+    async (handlerOptions: HandlerOptions): Promise<string> => {
+        const { payload, zeitClient } = handlerOptions
+        const { clientState, action, projectId, teamId } = payload
 
-    if (!projectId) {
-        return htm`
+        if (!projectId) {
+            return htm`
 			<Page>
             <Box textAlign="right">
 		    	<ProjectSwitcher />
@@ -22,41 +24,41 @@ export async function handler({ payload, zeitClient }) {
             </Box>
 			</Page>
 		`
-    }
+        }
 
-    if (!redisConfig) {
-        return addEnvConfig(redisConfig, payload, zeitClient)
-    }
-    if (action === 'reset-all') {
-        await zeitClient.setMetadata({})
-        await fetch(`${SCHEDULE_ENDPOINT}/reset/${payload.projectId}`, {
-            method: 'DELETE',
-        })
-    }
+        if (!redisConfig) {
+            return addEnvConfig(redisConfig, payload, zeitClient)
+        }
+        if (action === 'reset-all') {
+            await zeitClient.setMetadata({})
+            await fetch(`${SCHEDULE_ENDPOINT}/reset/${payload.projectId}`, {
+                method: 'DELETE',
+            })
+        }
 
-    const metadata: deploymentConfig = await zeitClient.getMetadata()
-    if (action === 'submit') {
-        const { ...deploymentStore } = clientState
-        metadata.deploymentStores.push(deploymentStore)
-        // Set metadata
-        await zeitClient.setMetadata(metadata)
-        await fetch(SCHEDULE_ENDPOINT, {
-            method: 'POST',
-            body: JSON.stringify(deploymentStore),
-        })
-    }
+        const metadata: deploymentConfig = await zeitClient.getMetadata()
+        if (action === 'submit') {
+            const { ...deploymentStore } = clientState
+            metadata.deploymentStores.push(deploymentStore)
+            // Set metadata
+            await zeitClient.setMetadata(metadata)
+            await fetch(SCHEDULE_ENDPOINT, {
+                method: 'POST',
+                body: JSON.stringify(deploymentStore),
+            })
+        }
 
-    if (action === 'reset') {
-        Object.assign(deploymentStore, {
-            project_name: '',
-            gitUrl: '',
-            timeToDeploy: '',
-            teamId: '',
-        })
-    }
+        if (action === 'reset') {
+            Object.assign(deploymentStore, {
+                project_name: '',
+                gitUrl: '',
+                timeToDeploy: '',
+                teamId: '',
+            })
+        }
 
-    // TODO: Use datepicker for scheduling
-    return htm`
+        // TODO: Use datepicker for scheduling
+        return htm`
 		<Page>
         <H1>Enter scheduled deployment</H1>
         <Container>
@@ -92,4 +94,5 @@ export async function handler({ payload, zeitClient }) {
         <AutoRefresh timeout=${3000} />
 		</Page>
 	`
-}
+    }
+)
