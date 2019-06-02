@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "scheduled-deployments",
+  "alias": "scheduled-deployments.ishaanmalhi.now.sh",
   "builds": [
     { "src": "server/src/routes/auth.ts", "use": "@now/node" },
     { "src": "server/src/routes/default.ts", "use": "@now/node" },

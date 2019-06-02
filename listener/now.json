@@ -1,10 +1,11 @@
 {
   "version": 1,
   "name": "redis-listener",
-  "builds": [{ "src": "index.ts", "use": "@now/node" }],
-  "env": {
-    "REDIS_HOST_URL": "@redis_host",
-    "SCHEDULE_ENDPOINT": "@schedule_endpoint",
-    "DEBUG": "@debug"
+  "build": {
+    "env": {
+      "REDIS_HOST_URL": "@redis_host",
+      "SCHEDULE_ENDPOINT": "@schedule_endpoint",
+      "DEBUG": "@debug"
+    }
   }
 }

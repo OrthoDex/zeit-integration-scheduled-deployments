@@ -34,7 +34,13 @@ redisWatcher.on('error', err => {
 
 redisWatcher.on('ready', () => {
     logger.info('redis connection ready')
-    redisWatcher.config('SET', 'notify-keyspace-events', 'KExe') // https://redis.io/topics/notifications
+    try {
+        //attempt to set redis config. Most cloud providers don't allow this command.
+        redisWatcher.config('SET', 'notify-keyspace-events', 'KExe') // https://redis.io/topics/notifications
+    } catch (error) {
+        logger.error(`Error while setting redis config ${error}`)
+    }
+
     redisWatcher.psubscribe(`__keyevent@${REDIS_HOST_DB}__:*`, (err, reply) => {
         if (err) {
             logger.error(`redis psubscribe error', ${err}`)
