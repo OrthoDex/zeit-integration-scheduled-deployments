@@ -20,34 +20,34 @@ const deploymentDetailsCache: deploymentDetails = {
     userId: '',
 }
 
+let projectName = ''
+
 const showScheduledDeployments = ({ metadata, children }) => htm`
+    <Box marginTop="10px">
     ${
         isEmpty(metadata) || isEmpty(metadata.deploymentStores)
             ? htm`<P> There are no scheduled deployments</P>`
-            : metadata.deploymentStores.forEach(
-                  (deploymentDetail: deploymentDetails) => {
-                      Object.keys(deploymentDetails).map(
-                          key => htm`
-                        <P>${key}</P>
-                        <P>${deploymentDetail[key]}</P>
-                      `
-                      )
-                  }
-              )
-    }`
+            : htm`<OL>${metadata.deploymentStores.map(
+                  deploymentDetail =>
+                      htm`<LI><P>Time to Deploy: ${
+                          deploymentDetail.timeToDeploy
+                      }</P>
+                  <P>Project Name:${projectName || ''}</P></LI>`
+              )}</OL>`
+    }
+    </Box>`
 
 const createDeploymentForm = ({ children }) => htm`
     <Box marginTop="10px">
     ${Object.keys(deploymentDetailsCache).map(
-        k => htm`${
-            !['teamId', 'userId'].includes(k) // todo: use datetime input for timeToDeploy
-                ? htm`<Input label="${k}" name="${k}" value="${
-                      deploymentDetailsCache[k]
-                  }" />`
-                : htm`<P></P>`
-        }
-		
-			`
+        k =>
+            htm`${
+                !['teamId', 'userId'].includes(k) // todo: use datetime input for timeToDeploy
+                    ? htm`<Input label="${k}" name="${k}" value="${
+                          deploymentDetailsCache[k]
+                      }" />`
+                    : htm`<P></P>`
+            }`
     )}
     </Box>
 `
@@ -83,6 +83,11 @@ export default withUiHook(
         deploymentDetailsCache.projectId = projectId
         deploymentDetailsCache.teamId = teamId || ''
 
+        projectName = await zeitClient
+            .fetch(`/v1/projects/${projectId}`, {})
+            .then(res => res.json())
+            .then(projectDetails => projectDetails.name)
+
         // TODO: Add ability to define user's own redis cluster
         // if (!redisConfig) {
         //     return addEnvConfig(redisConfig, payload, zeitClient)
@@ -99,6 +104,7 @@ export default withUiHook(
         }
 
         let metadata: deploymentConfig = await zeitClient.getMetadata()
+        logger.debug('metadata', { metadata })
         if (action === 'submit') {
             const deploymentDetails = pick(
                 clientState,
@@ -172,8 +178,8 @@ export default withUiHook(
             </Container>
             <Container>
                 <Button action="submit">Submit</Button>
-                <Button action="reset">Reset</Button>
-                <Button action="reset-all">Reset All</Button>
+                <Button action="reset">Reset</Button>   
+                <Button action="reset-all">Remove All</Button>
             </Container>
             </Page>
     	`
