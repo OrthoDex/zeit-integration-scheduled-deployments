@@ -18,7 +18,7 @@ async function main(ctx: Context, next: Function) {
         }
         ctx.status = 204
     } catch (error) {
-        logger.error('Error ocurred pushing to redis', { error })
+        logger.error(`Error ocurred pushing to redis', ${error}`)
         ctx.status = 500
     }
 }

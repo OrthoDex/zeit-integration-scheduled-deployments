@@ -20,7 +20,7 @@ export const createApiToken = async (uid: string) => {
         const userMetaData = JSON.parse(decrypted)
         return userMetaData.token
     } catch (error) {
-        logger.error('could not create zeit api client', { error })
+        logger.error(`could not create zeit api client: ${error}`)
         return false
     }
 }
@@ -76,7 +76,7 @@ export const createDeployment = async (
         // todo check if ready and alias to latest
         return deployResponse
     } catch (error) {
-        logger.error('error in creating deployment', { error })
+        logger.error(`error in creating deployment': ${error} `)
         throw error
     }
 }

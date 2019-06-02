@@ -1,5 +1,27 @@
 {
   "devDependencies": {
-    "@types/node": "^10.12.18"
+    "@types/node": "^10.12.18",
+    "typescript": "^3.5.1"
+  },
+  "name": "redis-listener",
+  "version": "1.0.0",
+  "description": "listener to notify on redis keyspace events",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "redis",
+    "listener",
+    "zeit",
+    "now"
+  ],
+  "author": "Ishaan Malhi",
+  "license": "ISC",
+  "dependencies": {
+    "micro": "^9.3.4",
+    "node-fetch": "^2.6.0",
+    "redis": "^2.8.0",
+    "winston": "^3.2.1"
   }
 }

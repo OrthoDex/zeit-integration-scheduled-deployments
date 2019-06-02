@@ -40,7 +40,7 @@ const createDeploymentForm = ({ children }) => htm`
     <Box marginTop="10px">
     ${Object.keys(deploymentDetailsCache).map(
         k => htm`${
-            !['teamId', 'userId'].includes(k)
+            !['teamId', 'userId'].includes(k) // todo: use datetime input for timeToDeploy
                 ? htm`<Input label="${k}" name="${k}" value="${
                       deploymentDetailsCache[k]
                   }" />`
@@ -114,12 +114,14 @@ export default withUiHook(
 
             logger.debug('deployment', { deploymentDetails })
 
-            // Set metadata
-            await zeitClient.setMetadata(metadata)
             const res = await fetch(`${SCHEDULE_ENDPOINT}/api/register`, {
                 method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
-                    deploymentDetails: deploymentDetails,
+                    deploymentDetails,
                 }),
             })
 
@@ -131,6 +133,8 @@ export default withUiHook(
             } else {
                 status = 'error'
             }
+            // Set metadata
+            await zeitClient.setMetadata(metadata)
         }
 
         if (action === 'reset') {
@@ -171,7 +175,6 @@ export default withUiHook(
                 <Button action="reset">Reset</Button>
                 <Button action="reset-all">Reset All</Button>
             </Container>
-            <AutoRefresh timeout=${3000} />
             </Page>
     	`
     }

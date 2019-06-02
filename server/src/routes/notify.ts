@@ -22,7 +22,7 @@ async function main(ctx: Context, next: Function) {
         ctx.status = 204
     } catch (error) {
         console.error(error)
-        logger.error('Error ocurred creating deployment', { error })
+        logger.error(`Error ocurred creating deployment', ${error}`)
         ctx.status = 500
     }
 }

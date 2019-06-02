@@ -18,7 +18,7 @@ const getSecondsUntil = (untilDate: Date) => {
 }
 
 async function main(ctx: Context, next: Function) {
-    logger.info('body', { ctx })
+    logger.info('body', { body: ctx.request.body })
 
     try {
         const { deploymentDetails } = ctx.request.body
@@ -41,7 +41,7 @@ async function main(ctx: Context, next: Function) {
         }
         ctx.status = 204
     } catch (error) {
-        logger.error('Error ocurred pushing to redis', { error })
+        logger.error(`Error ocurred pushing to redis', ${error}`)
         ctx.status = 500
     }
 }
